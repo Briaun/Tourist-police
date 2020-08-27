@@ -1,15 +1,15 @@
 {
-  "name": "testapi",
+  "name": "policetravel",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "cypress:open": "cypress open"
+	"cypress:open": "cypress open"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "cypress": "^4.10.0"
+    "cypress": "^5.0.0"
   }
 }

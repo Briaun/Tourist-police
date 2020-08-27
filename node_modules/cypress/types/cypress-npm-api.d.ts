@@ -6,7 +6,13 @@
 // in the future the NPM module itself will be in TypeScript
 // but for now describe it as an ambient module
 
-declare module 'cypress' {
+declare namespace CypressCommandLine {
+  type HookName = 'before' | 'beforeEach' | 'afterEach' | 'after'
+  interface TestError {
+    name: string
+    message: string
+    stack: string
+  }
   /**
    * All options that one can pass to "cypress.run"
    * @see https://on.cypress.io/module-api#cypress-run
@@ -154,39 +160,36 @@ declare module 'cypress' {
   // small utility types to better express meaning of other types
   type dateTimeISO = string
   type ms = number
-  type hookId = string
-  type testId = string
   type pixels = number
 
   /**
    * Cypress single test result
    */
   interface TestResult {
-    testId: testId
     title: string[]
     state: string
     body: string
-    /**
-     * Error stack string if there is an error
+     /**
+     * Error string as it's presented in console if the test fails
      */
-    stack: string | null
-    /**
-     * Error message if there is an error
-     */
-    error: string | null
-    timings: any
-    failedFromHookId: hookId | null
-    wallClockStartedAt: dateTimeISO
-    wallClockDuration: ms
+    displayError: string | null
+    attempts: AttemptResult[]
+  }
+
+  interface AttemptResult {
+    state: string
+    error: TestError | null
+    startedAt: dateTimeISO
+    duration: ms
     videoTimestamp: ms
+    screenshots: ScreenshotInformation[]
   }
 
   /**
    * Information about a single "before", "beforeEach", "afterEach" and "after" hook.
   */
   interface HookInformation {
-    hookId: hookId
-    hookName: 'before' | 'beforeEach' | 'afterEach' | 'after'
+    hookName: HookName
     title: string[]
     body: string
   }
@@ -195,9 +198,7 @@ declare module 'cypress' {
    * Information about a single screenshot.
    */
   interface ScreenshotInformation {
-    screenshotId: string
     name: string
-    testId: testId
     takenAt: dateTimeISO
     /**
      * Absolute path to the saved image
@@ -221,9 +222,9 @@ declare module 'cypress' {
       pending: number
       skipped: number
       failures: number
-      wallClockStartedAt: dateTimeISO
-      wallClockEndedAt: dateTimeISO
-      wallClockDuration: ms
+      startedAt: dateTimeISO
+      endedAt: dateTimeISO
+      duration: ms
     },
     /**
      * Reporter name like "spec"
@@ -238,7 +239,6 @@ declare module 'cypress' {
     tests: TestResult[]
     error: string | null
     video: string | null
-    screenshots: ScreenshotInformation[]
     /**
      * information about the spec test file.
     */
@@ -307,6 +307,27 @@ declare module 'cypress' {
   }
 
   /**
+   * Methods allow parsing given CLI arguments the same way Cypress CLI does it.
+   */
+  interface CypressCliParser {
+    /**
+     * Parses the given array of string arguments to "cypress run"
+     * just like Cypress CLI does it.
+     * @see https://on.cypress.io/module-api
+     * @example
+     *  const cypress = require('cypress')
+     *  const args = ['cypress', 'run', '--browser', 'chrome']
+     *  const options = await cypress.cli.parseRunArguments(args)
+     *  // options is {browser: 'chrome'}
+     *  // pass the options to cypress.run()
+     *  const results = await cypress.run(options)
+     */
+    parseRunArguments(args: string[]): Promise<Partial<CypressRunOptions>>
+  }
+}
+
+declare module 'cypress' {
+  /**
    * Cypress NPM module interface.
    * @see https://on.cypress.io/module-api
    * @example
@@ -330,13 +351,19 @@ declare module 'cypress' {
      })
      ```
      */
-    run(options?: Partial<CypressRunOptions>): Promise<CypressRunResult | CypressFailedRunResult>,
+    run(options?: Partial<CypressCommandLine.CypressRunOptions>): Promise<CypressCommandLine.CypressRunResult | CypressCommandLine.CypressFailedRunResult>,
     /**
      * Opens Cypress GUI. Resolves with void when the
      * GUI is closed.
      * @see https://on.cypress.io/module-api#cypress-open
      */
-    open(options?: Partial<CypressOpenOptions>): Promise<void>
+    open(options?: Partial<CypressCommandLine.CypressOpenOptions>): Promise<void>
+
+    /**
+     * Utility functions for parsing CLI arguments the same way
+     * Cypress does
+     */
+    cli: CypressCommandLine.CypressCliParser
   }
 
   // export Cypress NPM module interface

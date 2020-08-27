@@ -230,7 +230,7 @@ describe('จัดการข้อมูลรถ', function() {
       cy.contains("กรุณาใส่ข้อมูลนามสกุลผู้แจ้งเหตุ")
 
       cy.get("#carBlacklist_selectCar_add").click().contains("ดด-1111").click()
-      cy.get("#carBlacklist_inputCaseNumber").type("44ดf53")
+      cy.get("#carBlacklist_inputCaseNumber").type("44fffff53")
       cy.get("#carBlacklist_inputNearLocate").type("bangna")
       cy.get("#carBlacklist_inputFirstname").type("Tester")
       cy.get("#carBlacklist_inputLastname").type("DTC")
